@@ -12,7 +12,38 @@ from datetime import date
 # App setup
 # =========================
 st.set_page_config(page_title="Emotional Aurora — Wang Xinru — Final Project", page_icon="🌌", layout="wide")
-st.title("🌌 Emotional Aurora — Wang Xinru — Final Project (Corona Only)")
+st.title("🌌 Emotional Aurora — Wang Xinru — Final Project")
+
+# ✅ Instructions section
+with st.expander("Instructions", expanded=False):
+    st.markdown("""
+### How to Use This Project  
+
+**This project visualizes real-time emotions extracted from news articles as cinematic aurora patterns.**
+
+**1. Fetch Data**  
+- Use *NewsAPI* to fetch headlines  
+- Enter a keyword (e.g., *aurora*, *technology*, *science*)  
+- Sentiment is analyzed using VADER  
+
+**2. Emotion Classification**  
+- Each text is mapped to one of 20+ curated emotions  
+- You may filter emotions / compound score  
+
+**3. Aurora Rendering**  
+- Cinematic *Corona-style* aurora only  
+- Each emotion = one or more aurora bands  
+- Color depends on your palette  
+
+**4. Palette Customization**  
+- You may add your own RGB colors  
+- You can import/export palettes via CSV  
+
+**5. Download Image**  
+- Generate an Aurora image and download PNG  
+
+---
+""")
 
 # =========================
 # Load VADER Sentiment
@@ -59,7 +90,7 @@ def fetch_news(api_key, keyword="technology", page_size=50):
         return pd.DataFrame()
 
 # =========================
-# Default (planet-like) emotion colors
+# Default planet-like emotion colors
 # =========================
 DEFAULT_RGB = {
     "joy": (230,200,110),"love":(235,180,175),"pride":(200,170,210),"hope":(160,220,200),
@@ -68,7 +99,6 @@ DEFAULT_RGB = {
     "anxiety":(210,190,140),"boredom":(120,120,130),"nostalgia":(235,220,190),"gratitude":(175,220,220),
     "awe":(190,230,240),"trust":(100,170,160),"confusion":(210,170,175),"mixed":(210,190,140),
 }
-
 ALL_EMOTIONS = list(DEFAULT_RGB.keys())
 
 COLOR_NAMES = {
@@ -261,7 +291,10 @@ def render_engine(df,palette,theme_name,width,height,seed,blend_mode,bands,swirl
 
 # ---- 1) Data Source
 st.sidebar.header("1) Data Source (NewsAPI only)")
-keyword = st.sidebar.text_input("Keyword","aurora")
+
+# ✅ Keyword placeholder example added
+keyword = st.sidebar.text_input("Keyword", placeholder="e.g., aurora borealis, space weather, technology")
+
 fetch_btn = st.sidebar.button("Fetch News")
 
 df = pd.DataFrame()
@@ -296,7 +329,6 @@ cmp_min, cmp_max = st.sidebar.slider("Compound Range", -1.0,1.0,(-1.0,1.0),0.01)
 init_palette_state()
 palette = get_active_palette()
 
-# ✅ 显示所有默认情绪 + 自定义情绪
 available_emotions = sorted(df["emotion"].unique().tolist())
 custom_emotions = sorted(set(palette.keys()) - set(DEFAULT_RGB.keys()))
 all_emotions_for_ui = list(ALL_EMOTIONS) + [e for e in custom_emotions if e not in ALL_EMOTIONS]
@@ -305,11 +337,10 @@ def _label_emotion(e: str) -> str:
     if e in COLOR_NAMES:
         return f"{e} ({COLOR_NAMES[e]})"
     r, g, b = palette.get(e, (0, 0, 0))
-    return f"{e} (Custom {r},{g},{b})"
+        return f"{e} (Custom {r},{g},{b})"
 
 options_labels = [_label_emotion(e) for e in all_emotions_for_ui]
 
-# ✅ 默认只选“当前数据出现过的情绪”，否则全选
 if available_emotions:
     default_labels = [_label_emotion(e) for e in available_emotions]
 else:
@@ -320,9 +351,8 @@ selected_emotions = [lbl.split(" (")[0] for lbl in selected_labels]
 
 df=df[(df["emotion"].isin(selected_emotions))&(df["compound"]>=cmp_min)&(df["compound"]<=cmp_max)]
 
-# ---- 3) Corona Engine Settings
-st.sidebar.header("3) Aurora Engine — Corona (Only)")
-st.sidebar.markdown("**Aurora Type: Corona (Fixed)**")
+# ---- 3) Aurora Engine — Corona
+st.sidebar.header("3) Aurora Engine — Corona")
 
 blend_mode = st.sidebar.selectbox("Blend Mode", ["Additive","Linear Dodge","Normal"],index=0)
 bands = st.sidebar.slider("Bands per Emotion",1,5,3,1)
@@ -379,7 +409,8 @@ if st.sidebar.button("Reset All"):
 left, right = st.columns([0.6,0.4])
 
 with left:
-    st.subheader("🎬 Cinematic Aurora — Corona Only")
+    st.subheader("🌌 Aurora")   # ✅ Updated (Cinematic/Corona Only removed)
+
     if df.empty:
         st.warning("No data points under current filters.")
     else:
@@ -410,4 +441,4 @@ with right:
     st.dataframe(df2[cols],use_container_width=True,height=600)
 
 st.markdown("---")
-st.caption("© 2025 Emotional Aurora — Corona Only Edition")
+st.caption("© 2025 Emotional Aurora — Corona Edition")
