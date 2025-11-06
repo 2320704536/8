@@ -69,6 +69,8 @@ DEFAULT_RGB = {
     "awe":(190,230,240),"trust":(100,170,160),"confusion":(210,170,175),"mixed":(210,190,140),
 }
 
+ALL_EMOTIONS = list(DEFAULT_RGB.keys())
+
 COLOR_NAMES = {
     "joy": "Warm Jupiter Gold","love": "Venus Rose","pride": "Saturn Violet","hope": "Uranus Mint",
     "curiosity": "Soft Turquoise","calm": "Neptune Blue","surprise": "Dawn Peach","neutral": "Lunar Gray",
@@ -171,7 +173,7 @@ def vertical_gradient(width, height, top_rgb, bottom_rgb, brightness=1.0):
     return Image.fromarray(img)
 
 # =========================
-# Perlin-like Noise
+# fBm Noise
 # =========================
 def fbm_noise(h, w, rng, octaves=5, base_scale=96, persistence=0.55, lacunarity=2.0):
     acc = np.zeros((h,w), dtype=np.float32)
@@ -206,7 +208,7 @@ def apply_band(base_rgb, band_color, alpha, mode):
     return base_rgb*(1-a)+c*a
 
 # =========================
-# ✅ CORONA Renderer (Only)
+# ✅ Corona Renderer
 # =========================
 def render_corona_layer(width,height,rng,color_rgb,swirl=1.0,detail=0.8,blur_px=6):
     X = np.linspace(-1,1,width)[None,:]
@@ -231,7 +233,7 @@ def render_corona_layer(width,height,rng,color_rgb,swirl=1.0,detail=0.8,blur_px=
     return rgb, alpha
 
 # =========================
-# ✅ Aurora Engine (Corona Only)
+# ✅ Aurora Engine — Corona Only
 # =========================
 def render_engine(df,palette,theme_name,width,height,seed,blend_mode,bands,swirl,detail,blur,bg_brightness):
     rng = np.random.default_rng(seed)
@@ -294,10 +296,27 @@ cmp_min, cmp_max = st.sidebar.slider("Compound Range", -1.0,1.0,(-1.0,1.0),0.01)
 init_palette_state()
 palette = get_active_palette()
 
-valid_emotions = sorted(df["emotion"].unique().tolist())
-labels = [f"{e} ({COLOR_NAMES.get(e,'Custom')})" for e in valid_emotions]
-selected = st.sidebar.multiselect("Show Emotions", labels, default=labels)
-selected_emotions=[s.split(" ")[0] for s in selected]
+# ✅ 显示所有默认情绪 + 自定义情绪
+available_emotions = sorted(df["emotion"].unique().tolist())
+custom_emotions = sorted(set(palette.keys()) - set(DEFAULT_RGB.keys()))
+all_emotions_for_ui = list(ALL_EMOTIONS) + [e for e in custom_emotions if e not in ALL_EMOTIONS]
+
+def _label_emotion(e: str) -> str:
+    if e in COLOR_NAMES:
+        return f"{e} ({COLOR_NAMES[e]})"
+    r, g, b = palette.get(e, (0, 0, 0))
+    return f"{e} (Custom {r},{g},{b})"
+
+options_labels = [_label_emotion(e) for e in all_emotions_for_ui]
+
+# ✅ 默认只选“当前数据出现过的情绪”，否则全选
+if available_emotions:
+    default_labels = [_label_emotion(e) for e in available_emotions]
+else:
+    default_labels = options_labels
+
+selected_labels = st.sidebar.multiselect("Show Emotions:", options_labels, default=default_labels)
+selected_emotions = [lbl.split(" (")[0] for lbl in selected_labels]
 
 df=df[(df["emotion"].isin(selected_emotions))&(df["compound"]>=cmp_min)&(df["compound"]<=cmp_max)]
 
