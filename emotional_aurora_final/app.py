@@ -337,7 +337,7 @@ def _label_emotion(e: str) -> str:
     if e in COLOR_NAMES:
         return f"{e} ({COLOR_NAMES[e]})"
     r, g, b = palette.get(e, (0, 0, 0))
-        return f"{e} (Custom {r},{g},{b})"
+    return f"{e} (Custom {r},{g},{b})"
 
 options_labels = [_label_emotion(e) for e in all_emotions_for_ui]
 
