@@ -291,8 +291,8 @@ def render_engine(df,palette,theme_name,width,height,seed,blend_mode,bands,swirl
 
 # ---- 1) Data Source
 # ---- 1) Data Source (NewsAPI only)
-st.sidebar.markdown("**Keyword** *(e.g., aurora borealis, space weather, technology)*")
-keyword = st.sidebar.text_input("Keyword", placeholder="e.g., aurora borealis")
+st.sidebar.markdown("**Keyword** *(e.g. AI，aurora borealis, space weather, technology)*")
+keyword = st.sidebar.text_input("Keyword", placeholder="e.g.aurora borealis")
 fetch_btn = st.sidebar.button("Fetch News")
 df = pd.DataFrame()
 if fetch_btn:
