@@ -596,5 +596,3 @@ with right:
     if "source" in df.columns: cols.insert(2,"source")
     st.dataframe(df2[cols], use_container_width=True, height=600)
 
-st.markdown("---")
-st.caption("© 2025 Emotional Aurora — Cinematic Corona Edition (Bright)")
