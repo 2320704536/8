@@ -630,10 +630,10 @@ with st.sidebar.expander("Import / Export Palette CSV",False):
 
 st.sidebar.header("7) Output")
 if st.sidebar.button("Reset All"):
-    keys = list(st.session_state.keys())
-    for k in keys:
+    for k in list(st.session_state.keys()):
         del st.session_state[k]
-    st.experimental_rerun()
+    st.rerun()
+
 
 
 # =========================
