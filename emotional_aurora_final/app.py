@@ -498,4 +498,9 @@ if fetch_btn:
 if df.empty:
     df = pd.DataFrame({"text":[
         "A breathtaking aurora illuminated the northern sky last night.",
-        "Calm atmospheric conditions create a beautiful environment."
+        "Calm atmospheric conditions create a beautiful environment.",
+        "Anxiety spreads among investors during unstable market conditions.",
+        "A moment of awe as the sky shines with green auroral light.",
+        "Hope arises as scientific discoveries advance our understanding."
+    ]})
+    df["timestamp"]=str(date.today())
