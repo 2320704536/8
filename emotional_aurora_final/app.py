@@ -273,7 +273,7 @@ def render_geometric_burst(
     # 组合输出
     bg.alpha_composite(canvas)
     return bg.convert("RGB")
-    # =========================
+# =========================
 # === PART 3 — UI + Render ===
 # =========================
 
@@ -370,4 +370,3 @@ with right:
 
 st.markdown("---")
 st.caption("© 2025 Geometric Emotion Poster — Shine Edition")
-
