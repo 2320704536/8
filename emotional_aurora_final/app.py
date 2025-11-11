@@ -406,54 +406,87 @@ def render_ribbon_flow(df, palette, theme_name, width=1500, height=850,
                        seed=1234, ribbons_per_emotion=3, base_width=12,
                        smoothness=0.9, flow_variance=0.55, blur_back=1.5,
                        global_alpha=0.22):
+
     rng = np.random.default_rng(seed)
 
-    # Determine dominant emotion to guide background
+    # Determine dominant emotion
     counts = df["emotion"].value_counts()
     dominant = counts.index[0] if len(counts)>0 else "calm"
 
-    # palette to float
+    # Convert palette to floats
     pal01 = {k: np.array(v, dtype=np.float32)/255.0 for k,v in palette.items()}
+
+    # Background from emotion
     top, bottom = emotion_background_from_dominant(pal01, dominant, theme_name, boost=1.0)
     bg = vertical_gradient(width, height, top, bottom, brightness=1.0)
     base = np.array(bg, dtype=np.float32)/255.0
-    if blur_back>0:
-        base = np.array(Image.fromarray((base*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(radius=blur_back))).astype(np.float32)/255.0
 
-    # draw ribbons per emotion
-    # to keep color diversity, not only dominant; iterate deterministic order by count
-    emotions = counts.index.tolist()
-    if not emotions:
-        emotions = ["hope","calm","awe"]
-    # limit overdraw for perf
-    max_total = min(120, ribbons_per_emotion*len(emotions))
+    if blur_back > 0:
+        base = np.array(Image.fromarray((base*255).astype(np.uint8))
+                        .filter(ImageFilter.GaussianBlur(radius=blur_back))) / 255.0
+
+    # If no emotions found, add artificial one
+    if len(counts) == 0:
+        emotions = ["calm"]
+        counts = pd.Series({"calm": 1})
+    else:
+        emotions = counts.index.tolist()
+
+    # Max ribbons allowed
+    max_total = max(6, ribbons_per_emotion * len(emotions) * 2)
+
     painted = 0
+
     for emo in emotions:
-        if emo not in pal01: base_rgb = pal01["mixed"]
-        else: base_rgb = pal01[emo]
-        # add small jitter per emotion for variety
-        base_rgb = clamp01(np.array(jitter_emotion_color((base_rgb*255).astype(int), emo, amount=0.08))/255.0)
-        # intensity factor by frequency (more frequent -> more ribbons)
-        freq = int(np.clip((counts[emo]/max(counts.max(),1))*ribbons_per_emotion+0.75, 1, ribbons_per_emotion+2))
+        base_rgb = pal01.get(emo, pal01.get("mixed"))
+
+        # jitter color for richness
+        base_rgb = clamp01(np.array(jitter_emotion_color((base_rgb*255).astype(int),
+                                                         emo, amount=0.08))/255.0)
+
+        # ensure freq >= 2
+        raw_freq = (counts[emo] / max(counts.max(), 1)) * ribbons_per_emotion + 1
+        freq = max(2, int(raw_freq))
+
         for _ in range(freq):
-            if painted >= max_total: break
-            width_here = base_width * np.clip(0.85 + 0.6*rng.random(), 0.85, 1.45)
+            if painted >= max_total:
+                break
+
+            # Width floor
+            width_here = max(10, base_width * np.clip(0.85 + 0.6*rng.random(), 0.85, 1.45))
+
+            # Alpha minimum
+            alpha = max(global_alpha, 0.12)
+
             draw_ribbon(
                 base, rng, base_rgb,
                 width_px=width_here,
                 smoothness=smoothness,
                 flow_variance=flow_variance,
-                alpha=global_alpha,
+                alpha=alpha,
                 n_points=360,
-                color_variants=3
+                color_variants=3,
             )
-            painted += 1
-        if painted >= max_total: break
 
-    # gently pre-bloom to smooth
+            painted += 1
+
+    # ✅ If nothing got drawn: force fallback curve
+    if painted == 0:
+        fallback_color = pal01.get(dominant, np.array([0.8,0.7,0.5]))
+        draw_ribbon(
+            base, rng, fallback_color,
+            width_px=max(16, base_width),
+            smoothness=0.95,
+            flow_variance=0.65,
+            alpha=max(global_alpha,0.18),
+            n_points=360,
+            color_variants=3,
+        )
+
     base_img = Image.fromarray((clamp01(base)*255).astype(np.uint8))
     base_img = base_img.filter(ImageFilter.GaussianBlur(radius=0.8))
     return np.array(base_img).astype(np.float32)/255.0
+
 
 # =========================
 # Auto Brightness Compensation
