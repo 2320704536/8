@@ -152,9 +152,9 @@ def classify_emotion_expanded(row):
 
     return "neutral"
 
-# =========================================================
-#                  Palette State
-# =========================================================
+# =========================
+# Palette state
+# =========================
 def init_palette_state():
     if "use_csv_palette" not in st.session_state:
         st.session_state["use_csv_palette"] = False
@@ -164,32 +164,52 @@ def init_palette_state():
 def get_active_palette():
     if st.session_state.get("use_csv_palette", False):
         return dict(st.session_state.get("custom_palette", {}))
-
     merged = dict(DEFAULT_RGB)
     merged.update(st.session_state.get("custom_palette", {}))
     return merged
 
 def add_custom_emotion(name, r, g, b):
-    if not name: return
-    st.session_state["custom_palette"][name.strip()] = (int(r),int(g),int(b))
+    if not name: 
+        return
+    st.session_state["custom_palette"][name.strip()] = (int(r), int(g), int(b))
 
-# utilities
-def _rgb01(rgb):
-    return np.clip(np.array(rgb)/255.0,0,1)
+def import_palette_csv(file):
+    try:
+        dfc = pd.read_csv(file)
+        need = {"emotion", "r", "g", "b"}
+        cols = {c.lower(): c for c in dfc.columns}
 
-def jitter_color(rgb01, rng, amount=0.08):
-    j = (rng.random(3)-0.5)*2*amount
-    return np.clip(rgb01+j, 0, 1)
+        if not need.issubset(cols.keys()):
+            st.error("CSV must include emotion, r, g, b columns")
+            return
 
-def vibrancy_boost(rgb, min_luma=0.32, sat=1.3):
-    c=_rgb01(rgb)
-    lum = 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2]
-    if lum < min_luma:
-        c += (min_luma - lum)
-    # saturation
-    l = lum
-    c = np.clip(l + (c - l)*sat, 0, 1)
-    return c
+        pal = {}
+        for _, row in dfc.iterrows():
+            emo = str(row[cols["emotion"]]).strip()
+            try:
+                r = int(row[cols["r"]])
+                g = int(row[cols["g"]])
+                b = int(row[cols["b"]])
+            except:
+                continue
+            pal[emo] = (r, g, b)
+
+        st.session_state["custom_palette"] = pal
+        st.success(f"Imported {len(pal)} colors from CSV.")
+
+    except Exception as e:
+        st.error(f"CSV import error: {e}")
+
+def export_palette_csv(pal):
+    """✅ FIXED: This function MUST exist before being called"""
+    buf = BytesIO()
+    pd.DataFrame([
+        {"emotion": k, "r": v[0], "g": v[1], "b": v[2]} 
+        for k, v in pal.items()
+    ]).to_csv(buf, index=False)
+    buf.seek(0)
+    return buf
+
 # =========================
 # Defaults & Reset
 # =========================
