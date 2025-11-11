@@ -514,9 +514,7 @@ if selected_labels != default_labels:
 selected_emotions = [lbl.split(" (")[0] for lbl in selected_labels]
 df = df[(df["emotion"].isin(selected_emotions)) & (df["compound"]>=cmp_min) & (df["compound"]<=cmp_max)]
 
-# =========================
-# Sidebar — Ribbon Engine & Background
-# =========================
+# ---- 3) Ribbon Engine — Flow
 st.sidebar.header("3) Ribbon Engine — Flow")
 
 ribbons_per_emotion = st.sidebar.slider("Ribbons per Emotion", 2, 40, 16, 1)
@@ -527,46 +525,31 @@ curve_noise = st.sidebar.slider("Curve Randomness", 0.00, 0.90, 0.32, 0.01)
 stroke_blur = st.sidebar.slider("Stroke Softness (blur px)", 0.0, 10.0, 0.0, 0.5)
 ribbon_alpha = st.sidebar.slider("Ribbon Alpha", 60, 255, 230, 5)
 
+# ✅ Background (ONLY two options now)
 st.sidebar.subheader("Background (Solid Color)")
-BG_PRESETS = {
-    "Arctic White": (245, 248, 252),
-    "Ivory": (250, 246, 234),
-    "Deep Navy": (12, 18, 38),
-    "Ink Black": (4, 5, 8),
-    "Peach": (255, 238, 224),
-    "Mint": (225, 250, 240),
-    "Teal": (208, 242, 240),
-    "Royal Purple": (240, 228, 255),
-    "Sunset Orange": (255, 232, 220),
-    "Sky Blue": (220, 238, 255),
-}
 
-bg_mode = st.sidebar.radio("Background Mode", ["Pick from presets", "Use Top Emotion color"], index=0)
+bg_mode = st.sidebar.radio("Background Mode", ["Use custom color", "Use Top Emotion color"], index=0)
 
-if bg_mode == "Pick from presets":
-    bg_name = st.sidebar.selectbox("Preset", list(BG_PRESETS.keys()), index=list(BG_PRESETS.keys()).index("Arctic White"))
-    bg_rgb = list(BG_PRESETS[bg_name])
-    custom_hex = st.sidebar.color_picker("Or choose custom", "#F5F8FC")
-    # override with color picker if changed
-    try:
-        if custom_hex:
-            ch = custom_hex.lstrip("#")
-            if len(ch)==6:
-                bg_rgb = [int(ch[i:i+2],16) for i in (0,2,4)]
-    except:
-        pass
+if bg_mode == "Use custom color":
+    # default soft white
+    custom_hex = st.sidebar.color_picker("Pick background color", "#F5F8FC")
+    ch = custom_hex.lstrip("#")
+    bg_rgb = [int(ch[i:i+2],16) for i in (0,2,4)]
+
 else:
-    # 取当前数据最多的情绪颜色作为背景
+    # Use top emotion color
     if len(df):
         top_emo = df["emotion"].value_counts().index.tolist()[0]
     else:
-        # 如果过滤为空，回退到全数据
-        top_emo = (df["emotion"].value_counts().index.tolist() or ["calm"])[0] if "emotion" in df.columns else "calm"
+        top_emo = "calm"
+
     top_col = get_active_palette().get(top_emo, DEFAULT_RGB["calm"])
-    # 背景略微降低饱和度、提高亮度，避免太刺眼
+
+    # slightly brighten + lower saturation
     r,g,b = [c/255.0 for c in top_col]
     r,g,b = sat_val_boost((r,g,b), sat_mul=0.85, val_mul=1.25, min_v=0.5)
     bg_rgb = float_to_rgb255((r,g,b))
+
 
 # =========================
 # Sidebar — Cinematic Color System
