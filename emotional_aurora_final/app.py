@@ -492,13 +492,12 @@ curve_noise = st.sidebar.slider(
     st.session_state.get("curve_noise",DEFAULTS["curve_noise"]),
     0.01,key="curve_noise")
 stroke_blur = st.sidebar.slider(
-    "Stroke Softness (blur px)",
-    0.0, 10.0,   # ✅ 用 float
-    float(st.session_state.get("stroke_blur", DEFAULTS["stroke_blur"])),
-    0.5,
+    "Stroke Softness (blur px)",      # label
+    0.0, 10.0,                         # min, max
+    st.session_state.get("stroke_blur", DEFAULTS["stroke_blur"]),   # default
+    0.5,                               # step
     key="stroke_blur"
-)_blur",DEFAULTS["stroke_blur"]),
-    0.5,key="stroke_blur")
+)
 ribbon_alpha = st.sidebar.slider(
     "Ribbon Alpha",40,255,
     st.session_state.get("ribbon_alpha",DEFAULTS["ribbon_alpha"]),
