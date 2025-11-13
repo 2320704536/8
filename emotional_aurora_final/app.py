@@ -545,7 +545,8 @@ def _label_emotion(e: str) -> str:
     if e in COLOR_NAMES:
         return f"{e} ({COLOR_NAMES[e]})"
     r, g, b = base_palette.get(e, (0, 0, 0))
-        return f"{e} (Custom {r},{g},{b})"
+    return f"{e} (Custom {r},{g},{b})"
+
 
 auto_top3 = st.sidebar.checkbox(
     "Auto-select Top-3 emotions after fetch",
