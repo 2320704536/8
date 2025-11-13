@@ -12,6 +12,45 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import requests
 from datetime import date
 import math
+# Instructions section
+with st.expander("Instructions", expanded=False):
+    st.markdown("""
+### How to Use This Project  
+
+**This project transforms emotion data into cinematic ice-crystal generative visuals.**
+
+**1. Fetch or Generate Data**  
+- Enter a keyword (e.g., *AI*, *emotion*, *technology*)  
+- Fetch news through *NewsAPI*  
+- Or click **Random Generate** for fully generative crystal patterns  
+
+**2. Emotion Classification**  
+- Text sentiment is analyzed using **VADER**  
+- Each entry is mapped to one of 20+ emotions  
+- You may filter emotions or limit the compound score range  
+- **Although the system contains many emotion categories, only emotions that actually appear in the DataFrame (df) will be shown in *Selected Emotions*.**  
+
+**3. Crystal Rendering**  
+- The system generates layered **ice-crystal fragments**  
+- Each emotion corresponds to a unique crystal color  
+- All fragments blend with cinematic bloom, tonemapping, and glow effects  
+
+**4. Palette Customization**  
+- Add your own RGB colors  
+- Import / export palettes via CSV  
+- Switch between default palette and fully custom palette  
+
+**5. Cinematic Post-processing**  
+- Full control of exposure, contrast, saturation  
+- White balance, split toning, bloom, vignette  
+- Automatic brightness compensation  
+
+**6. Export Image**  
+- Generate a high-resolution crystalline artwork  
+- Download PNG with one click  
+
+---
+""")
 
 # =========================
 # App setup
