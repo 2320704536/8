@@ -1044,9 +1044,7 @@ lin = highlight_rolloff(lin, roll)
 
 # Back to sRGB
 arr = linear_to_srgb(np.clip(lin, 0, 4))
-
-
-    # ===== FILMIC CURVE =====
+# ===== FILMIC CURVE =====
     arr = np.clip(filmic_tonemap(arr * 1.20), 0, 1)
 
     # ===== CONTRAST / SATURATION / GAMMA =====
