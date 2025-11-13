@@ -326,15 +326,43 @@ def filmic_tonemap(x):
     A = 0.22; B = 0.30; C = 0.10; D = 0.20; E = 0.01; F = 0.30
     return ((x*(A*x + C*B) + D*E) / (x*(A*x + B) + D*F)) - E/F
 
-def apply_white_balance(img, temp, tint):
-    r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
-    r *= (1.0 + 0.10*temp)
-    b *= (1.0 - 0.10*temp)
-    g *= (1.0 + 0.08*tint)
-    r *= (1.0 - 0.06*tint)
-    b *= (1.0 - 0.02*tint)
-    out = np.stack([r,g,b], axis=-1)
-    return np.clip(out, 0, 1)
+def apply_white_balance(lin_img, temp, tint):
+    """
+    lin_img: linear RGB image (float32)
+    temp: [-1, 1] blue ↔ yellow
+    tint: [-1, 1] green ↔ magenta
+    """
+
+    # White point shift strength
+    # (Strong enough to see clearly, but still natural)
+    temp_strength = 0.6
+    tint_strength = 0.5
+
+    # Temperature shift (blue ↔ yellow)
+    # Blue channel gets boosted on negative temp
+    # Red channel gets boosted on positive temp
+    wb_temp = np.array([
+        1.0 + temp * temp_strength,         # R
+        1.0,                                # G
+        1.0 - temp * temp_strength          # B
+    ])
+
+    # Tint shift (green ↔ magenta)
+    wb_tint = np.array([
+        1.0 + tint * tint_strength,         # R (more magenta)
+        1.0 - tint * tint_strength,         # G (more green)
+        1.0 + tint * tint_strength          # B
+    ])
+
+    # Combined balance
+    wb = wb_temp * wb_tint
+
+    # Apply to image
+    out = lin_img * wb.reshape(1,1,3)
+
+    # Avoid clipping
+    return np.clip(out, 0, 4)
+
 
 def adjust_contrast(img, c):
     return np.clip((img - 0.5)*c + 0.5, 0, 1)
