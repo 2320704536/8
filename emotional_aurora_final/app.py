@@ -746,7 +746,7 @@ st.sidebar.subheader("Crystal Layer Controls")
 layer_count = st.sidebar.slider(
     "Layers",
     1, 30,
-    10,
+    2,
     help="Controls how many layers of crystal fragments are rendered overall."
 )
 
@@ -761,7 +761,7 @@ wobble_control = st.sidebar.slider(
 seed_control = st.sidebar.slider(
     "Seed",
     0, 500,
-    50,
+    25,
     help="Random seed for reproducible crystal patterns."
 )
 
