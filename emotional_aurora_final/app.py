@@ -760,8 +760,8 @@ wobble_control = st.sidebar.slider(
 
 seed_control = st.sidebar.slider(
     "Seed",
-    0, 999,
-    123,
+    0, 500,
+    50,
     help="Random seed for reproducible crystal patterns."
 )
 
