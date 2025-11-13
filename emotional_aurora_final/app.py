@@ -481,19 +481,33 @@ df = pd.DataFrame()
 
 # === NEW: random generate ===
 if random_btn:
-    sample_emotions = [
-        "joy","love","pride","hope","curiosity","calm","surprise",
-        "nostalgia","sadness","anger","fear","awe","gratitude","trust"
-    ]
     rng = np.random.default_rng()
+
+    num_items = 8
     fake_texts = []
-    for _ in range(8):
-        emo = rng.choice(sample_emotions)
-        sentence = f"A moment of {emo} fills the atmosphere with shifting colors."
+    random_emotions = []
+    random_palette = {}
+
+    for i in range(num_items):
+        # 随机文本
+        sentence = f"A randomly generated abstract moment #{i+1} explores shifting colors."
         fake_texts.append(sentence)
+
+        # 随机 emotion 名（不会跟已有 emotion 冲突）
+        emo = f"random_{i+1}"
+        random_emotions.append(emo)
+
+        # 随机颜色
+        r = int(rng.integers(0, 256))
+        g = int(rng.integers(0, 256))
+        b = int(rng.integers(0, 256))
+
+        # 加入 palette（覆盖默认 emotion → 完全自定义颜色）
+        st.session_state["custom_palette"][emo] = (r, g, b)
 
     df = pd.DataFrame({
         "text": fake_texts,
+        "emotion": random_emotions,
         "timestamp": str(date.today()),
         "source": "RandomGen"
     })
