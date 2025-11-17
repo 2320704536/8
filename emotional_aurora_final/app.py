@@ -572,19 +572,23 @@ df = pd.DataFrame()
 
 if random_btn:
     rng = np.random.default_rng()
+
+    # ---- NEW: Random mode always uses a random seed between 10–25 ----
+    st.session_state["random_seed"] = int(rng.integers(10, 26))
+    seed_control = st.session_state["random_seed"]
+
     num_items = 12
-    texts = []
-    emos = []
 
     # random mode always regenerates random emotions and colors
     st.session_state["custom_palette"] = {}
 
+    texts = []
+    emos = []
     for i in range(num_items):
         texts.append(f"Random crystal fragment #{i+1}")
         emo = f"crystal_{i+1}"
         emos.append(emo)
 
-        # random color, but CSV can override
         r = int(rng.integers(0,256))
         g = int(rng.integers(0,256))
         b = int(rng.integers(0,256))
@@ -598,6 +602,7 @@ if random_btn:
         "pos": 0, "neu": 1, "neg": 0,
         "source": "CrystalGen"
     })
+
 
 elif fetch_btn:
     key = st.secrets.get("NEWS_API_KEY","")
