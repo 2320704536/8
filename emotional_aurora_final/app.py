@@ -572,6 +572,8 @@ df = pd.DataFrame()
 
 if random_btn:
     rng = np.random.default_rng()
+        # NEW: 每次 Random 自动生成新的 seed，让图案也改变
+    st.session_state["random_auto_seed"] = int(rng.integers(0, 10_000_000))
     num_items = 12
     texts = []
     emos = []
@@ -829,13 +831,16 @@ with left:
     st.subheader("❄️ Crystal Mix Visualization")
 
     working_palette = get_active_palette()
+        # If random mode auto seed exists, use it; else use user seed
+auto_seed = st.session_state.get("random_auto_seed", None)
 
-    img = render_crystalmix(
-        df=df,
-        palette=working_palette,
-        width=1500,
-        height=850,
-        seed=seed_control,
+img = render_crystalmix(
+    df=df,
+    palette=working_palette,
+    width=1500,
+    height=850,
+    seed=auto_seed if auto_seed is not None else seed_control,
+
         shapes_per_emotion=ribbons_per_emotion,
         min_size=poly_min_size,
         max_size=poly_max_size,
