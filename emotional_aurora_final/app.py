@@ -416,6 +416,27 @@ def render_crystalmix(
     # Combine layers onto background
     base.alpha_composite(canvas)
     return base.convert("RGB")
+    # ============================================================
+# (FINAL FIX) Guarantee df has emotion column
+# ============================================================
+
+# If df is empty → create a minimal empty-safe df
+if df.empty:
+    df = pd.DataFrame({
+        "text": [],
+        "timestamp": [],
+        "source": [],
+        "compound": [],
+        "pos": [],
+        "neu": [],
+        "neg": [],
+        "emotion": []   # <-- important!
+    })
+
+# If df has NO emotion column → assign neutral
+if "emotion" not in df.columns:
+    df["emotion"] = "neutral"
+
 # ============================================================
 # Emotional Crystal — FINAL VERSION (Part 4 / 6)
 # Cinematic Color System
