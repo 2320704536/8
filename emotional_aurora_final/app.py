@@ -297,46 +297,58 @@ def jitter_color(rgb01, rng, amount=0.06):
     return tuple(np.clip(np.array(rgb01) + j, 0, 1).tolist())
 
 
-# =========================
-# Crystal Render Engine
-# =========================
 def render_crystalmix(
-    df,
-    palette,
-    width=1500, height=850,
-    seed=12345,
-    shapes_per_emotion=10,
-    min_size=60, max_size=220,
+    df, palette,
+    width=1500, height=850, seed=12345,
+    shapes_per_emotion=8,       # 减少数量，画面立刻好看
+    min_size=40, max_size=220,
     fill_alpha=210, blur_px=6,
-    bg_color=(0, 0, 0),
+    bg_color=(0,0,0),
     wobble=0.25,
-    layers=10
+    layers=8
 ):
-
     rng = np.random.default_rng(seed)
 
-    base = Image.new("RGBA", (width, height),
-                     (bg_color[0], bg_color[1], bg_color[2], 255))
-    canvas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    base = Image.new("RGBA", (width, height), (bg_color[0], bg_color[1], bg_color[2], 255))
+    canvas = Image.new("RGBA", (width, height), (0,0,0,0))
 
-    # IMPORTANT:
-    # emotion list from df (OR from random mode)
     emotions = df["emotion"].value_counts().index.tolist()
     if not emotions:
-        emotions = ["joy", "love", "curiosity"]
+        emotions = ["joy","love","curiosity"]
+
+    # ★ 控制全局密度（非常关键）
+    # 总碎片数 ≈ shapes_per_emotion × layers × (emotion 个数)
+    density = shapes_per_emotion * layers * len(emotions)
+
+    # ★ 小碎片数量比例（70%）
+    small_prob = 0.70
 
     for _layer in range(layers):
+
+        # 小范围模糊差别
+        layer_blur_scale = rng.uniform(0.85, 1.25)
+
         for emo in emotions:
+            base_rgb = palette.get(emo, palette.get("mixed", (230,190,110)))
+            base01 = vibrancy_boost(base_rgb, sat_boost=1.25, min_luma=0.40)
 
-            base_rgb = palette.get(emo, palette.get("mixed", (230, 190, 110)))
-            base01 = vibrancy_boost(base_rgb)
+            for _ in range(max(1, int(shapes_per_emotion))):
 
-            for _ in range(shapes_per_emotion):
+                # ★ 随机决定是大碎片还是小碎片
+                if rng.random() < small_prob:
+                    rr = int(rng.uniform(min_size * 0.4, min_size * 1.2))
+                else:
+                    rr = int(rng.uniform(max_size * 0.4, max_size))
 
-                cx = rng.uniform(0.05 * width, 0.95 * width)
-                cy = rng.uniform(0.08 * height, 0.92 * height)
-                rr = int(rng.uniform(min_size, max_size))
+                # ★ 关键：使用高斯分布，让图案出现留白
+                cx = int(rng.normal(width*0.5, width*0.22))
+                cy = int(rng.normal(height*0.5, height*0.22))
 
+                # 限制在画布内
+                cx = np.clip(cx, width*0.05, width*0.95)
+                cy = np.clip(cy, height*0.08, height*0.92)
+
+                # shape
                 pts = crystal_shape(
                     center=(cx, cy),
                     r=rr,
@@ -346,23 +358,23 @@ def render_crystalmix(
                     rng=rng
                 )
 
-                col01 = jitter_color(base01, rng, amount=0.07)
-                local_alpha = int(np.clip(
-                    fill_alpha * rng.uniform(0.85, 1.05), 40, 255))
-                local_blur = max(0, int(blur_px * rng.uniform(0.7, 1.4)))
-                edge_w = 0 if rng.random() < 0.6 else max(1, int(rr * 0.02))
+                # 颜色有变化（但比以前更柔和）
+                col01 = jitter_color(base01, rng, amount=0.05)
+
+                local_alpha = int(np.clip(fill_alpha * rng.uniform(0.8, 1.10), 40, 255))
+                local_blur = max(0, int(blur_px * layer_blur_scale * rng.uniform(0.7, 1.3)))
 
                 draw_polygon_soft(
-                    canvas,
-                    pts,
-                    col01,
+                    canvas, pts, col01,
                     fill_alpha=local_alpha,
                     blur_px=local_blur,
-                    edge_width=edge_w
+                    edge_width=0
                 )
 
     base.alpha_composite(canvas)
+
     return base.convert("RGB")
+
 # ============================================================
 # Emotional Crystal — FINAL (Part 4 / 8)
 # Cinematic Color Pipeline
