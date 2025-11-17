@@ -23,7 +23,8 @@ with st.expander("Instructions", expanded=False):
 ### How to Use This Project  
 
 **This project transforms emotion data into cinematic ice-crystal generative visuals.**
-**After generating a random pattern, you can adjust the seed to change its appearance！
+
+**After generating a random pattern, you can adjust the seed to change its appearance！**
 
 **1. Fetch or Generate Data**  
 - Enter a keyword (e.g., *AI*, *emotion*, *technology*)  
