@@ -577,18 +577,19 @@ if random_btn:
     st.session_state["random_seed"] = int(rng.integers(10, 26))
     seed_control = st.session_state["random_seed"]
 
-    num_items = 12
-
-    # random mode always regenerates random emotions and colors
+    # ---- NEW: Only generate 2 to 5 random emotions (colors) ----
+    num_items = int(rng.integers(2, 6))  # 2–5
     st.session_state["custom_palette"] = {}
 
     texts = []
     emos = []
+
     for i in range(num_items):
         texts.append(f"Random crystal fragment #{i+1}")
         emo = f"crystal_{i+1}"
         emos.append(emo)
 
+        # generate random 1 color per emotion
         r = int(rng.integers(0,256))
         g = int(rng.integers(0,256))
         b = int(rng.integers(0,256))
@@ -602,6 +603,7 @@ if random_btn:
         "pos": 0, "neu": 1, "neg": 0,
         "source": "CrystalGen"
     })
+
 
 
 elif fetch_btn:
