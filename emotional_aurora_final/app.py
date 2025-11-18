@@ -621,7 +621,7 @@ df = pd.DataFrame()
 # ❄️ RANDOM MODE：文本随机 + 颜色随机 + emotion = crystal_xxx
 if random_btn:
     # 自动更新 seed（NEW）
-    st.session_state["auto_seed"] = int(np.random.randint(0, 1000000))
+    st.session_state["auto_seed"] = int(np.random.randint(0, 1000))
 
     rng = np.random.default_rng()
     
