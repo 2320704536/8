@@ -731,11 +731,30 @@ selected_labels = st.sidebar.multiselect(
     default=default_labels
 )
 
-selected_emotions = [lbl.split(" (")[0] for lbl in selected_labels]
+# =========================
+# Selected Emotions (Disabled in CSV-only)
+# =========================
 
-df = df[(df["emotion"].isin(selected_emotions))
-        & (df["compound"] >= cmp_min)
-        & (df["compound"] <= cmp_max)]
+if st.session_state.get("use_csv_palette", False):
+    st.sidebar.write("Selected Emotions (disabled in CSV-only mode)")
+    selected_emotions = df["emotion"].unique().tolist()   # 全部保留
+else:
+    option_labels = [_label_emotion(e) for e in available_emotions]
+    default_labels = [_label_emotion(e) for e in (top3 if top3 else available_emotions)]
+
+    selected_labels = st.sidebar.multiselect(
+        "Selected Emotions",
+        option_labels,
+        default=default_labels
+    )
+    selected_emotions = [lbl.split(" (")[0] for lbl in selected_labels]
+
+df = df[
+    (df["emotion"].isin(selected_emotions)) &
+    (df["compound"] >= cmp_min) &
+    (df["compound"] <= cmp_max)
+]
+
 
 # =========================
 # Auto Seed Init (NEW)
