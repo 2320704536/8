@@ -657,7 +657,7 @@ if random_btn:
 # 🔍 FETCH NEWS MODE
 elif fetch_btn:
     # 自动更新 seed（NEW）
-    st.session_state["auto_seed"] = int(np.random.randint(0, 1000000))
+    st.session_state["auto_seed"] = int(np.random.randint(0, 1000))
 
     key = st.secrets.get("NEWS_API_KEY","")
     if not key:
