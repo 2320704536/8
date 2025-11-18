@@ -962,13 +962,36 @@ use_csv = st.sidebar.checkbox(
 )
 
 with st.sidebar.expander("Add Custom Emotion", False):
-    col1,col2,col3,col4 = st.columns([1.6,1,1,1])
+    col1, col2, col3, col4 = st.columns([1.6, 1, 1, 1])
     emo_name = col1.text_input("Emotion Name")
-    r = col2.number_input("R",0,255,180)
-    g = col3.number_input("G",0,255,180)
-    b = col4.number_input("B",0,255,200)
+    r = col2.number_input("R", 0, 255, 180)
+    g = col3.number_input("G", 0, 255, 180)
+    b = col4.number_input("B", 0, 255, 200)
+
     if st.button("Add Color"):
         add_custom_emotion(emo_name, r, g, b)
+
+    # -------------------------
+    # SHOW PREVIEW OF ADDED COLORS
+    # -------------------------
+    custom_pal = st.session_state.get("custom_palette", {})
+    
+    if custom_pal:
+        st.markdown("### Added Colors")
+        for emo, (rr, gg, bb) in custom_pal.items():
+            colA, colB = st.columns([0.4, 0.6])
+            with colA:
+                st.markdown(f"**{emo}**  \nRGB: ({rr}, {gg}, {bb})")
+            with colB:
+                st.color_picker(
+                    label=f"Preview {emo}",
+                    key=f"{emo}_preview",
+                    value=f"#{rr:02x}{gg:02x}{bb:02x}",
+                    disabled=True
+                )
+    else:
+        st.markdown("*No custom colors added yet.*")
+
 
 with st.sidebar.expander("Import / Export Palette CSV", False):
     up = st.file_uploader("Import CSV", type=["csv"])
