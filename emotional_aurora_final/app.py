@@ -1076,7 +1076,19 @@ with left:
 
     st.subheader("❄️ Crystal Mix Visualization")
 
+   
     working_palette = get_active_palette()
+# ==========================================
+# CSV-ONLY MODE: force df to use custom palette keys
+# ==========================================
+if st.session_state.get("use_csv_palette", False):
+    pal = list(working_palette.keys())
+    if len(pal) == 0:
+        st.warning("CSV palette only mode enabled, but no custom colors found.")
+    else:
+        # Repeat palette index to match df length
+        df = df.copy()
+        df["emotion"] = [pal[i % len(pal)] for i in range(len(df))]
 
     # ❄️ Crystal Mix Render
     img = render_crystalmix(
