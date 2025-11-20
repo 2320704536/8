@@ -577,7 +577,6 @@ keyword = st.sidebar.text_input(
     key="keyword",
     placeholder="e.g., AI"
 )
-
 fetch_btn = st.sidebar.button("Fetch News")
 random_btn = st.sidebar.button("Random Generate (Crystal Mode)")
 
