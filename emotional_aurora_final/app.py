@@ -1011,64 +1011,98 @@ left, right = st.columns([0.60, 0.40])
 # Left Column: Crystal Image
 # =========================
 with left:
-
     st.subheader("❄️ Crystal Mix Visualization")
 
-   
-    working_palette = get_active_palette()
-# ================================
-# FORCE CSV-only palette
-# ================================
-if st.session_state.get("use_csv_palette", False):
-    # ★ 完全使用 CSV palette，不允许 DEFAULT fallback
-    working_palette = dict(st.session_state.get("custom_palette", {}))
-else:
-    # ★ 正常模式才允许 default + custom
-    working_palette = get_active_palette()
+    # FORCE CSV-only palette
+    if st.session_state.get("use_csv_palette", False):
+        # 100% 使用 CSV 里的颜色
+        working_palette = dict(st.session_state.get("custom_palette", {}))
+    else:
+        # 正常模式：DEFAULT + custom
+        working_palette = get_active_palette()
 
-
-    # ❄️ Crystal Mix Render
+    # Render image
     img = render_crystalmix(
         df=df,
         palette=working_palette,
         width=1500,
         height=850,
-        seed=seed_control,              # ← controlled seed
+        seed=seed_control,              
         shapes_per_emotion=ribbons_per_emotion,
         min_size=poly_min_size,
         max_size=poly_max_size,
         fill_alpha=int(ribbon_alpha),
         blur_px=int(stroke_blur),
         bg_color=bg_rgb,
-        wobble=wobble_control,          # ← new wobble
-        layers=layer_count              # ← new layer count
+        wobble=wobble_control,
+        layers=layer_count
     )
 
-    # ==========================================
-    # Convert PIL → NumPy
-    # ==========================================
-    # ==========================================
-# Convert PIL → NumPy
-# ==========================================
-arr = np.array(img).astype(np.float32) / 255.0
+    # Convert to NumPy
+    arr = np.array(img).astype(np.float32) / 255.0
 
-# =====================================================
-# STRICT CSV COLOR MODE (NO POST-PROCESSING AT ALL)
-# =====================================================
-if st.session_state.get("use_csv_palette", False):
-    final_img = Image.fromarray((np.clip(arr,0,1) * 255).astype(np.uint8))
+    # STRICT CSV MODE → No post FX
+    if st.session_state.get("use_csv_palette", False):
+        final_img = Image.fromarray((np.clip(arr,0,1) * 255).astype(np.uint8))
+        buf = BytesIO()
+        final_img.save(buf, format="PNG")
+        buf.seek(0)
 
+        st.image(final_img, use_column_width=True)
+        st.download_button(
+            "💾 Download PNG (True CSV Color — No Post FX)",
+            data=buf,
+            file_name="crystal_mix_truecolor.png",
+            mime="image/png"
+        )
+
+        st.stop()  # finish here
+    
+    # ===== POST FX (normal mode) =====
+    lin = srgb_to_linear(arr)
+    lin = lin * (2.0 ** exp)
+    lin = apply_white_balance(lin, temp, tint)
+    lin = highlight_rolloff(lin, roll)
+    arr = linear_to_srgb(np.clip(lin, 0, 4))
+    arr = np.clip(filmic_tonemap(arr * 1.20), 0, 1)
+    arr = adjust_contrast(arr, contrast)
+    arr = adjust_saturation(arr, saturation)
+    arr = gamma_correct(arr, gamma_val)
+
+    arr = split_tone(
+        arr,
+        sh_rgb=(sh_r, sh_g, sh_b),
+        hi_rgb=(hi_r, hi_g, hi_b),
+        balance=tone_balance
+    )
+
+    if auto_bright:
+        arr = auto_brightness_compensation(
+            arr,
+            target_mean=target_mean,
+            strength=abc_strength,
+            black_point_pct=abc_black,
+            white_point_pct=abc_white,
+            max_gain=abc_max_gain
+        )
+
+    arr = apply_bloom(arr, radius=bloom_radius, intensity=bloom_intensity)
+    arr = apply_vignette(arr, strength=vignette_strength)
+    arr = ensure_colorfulness(arr, min_sat=0.16, boost=1.18)
+
+    final_img = Image.fromarray((np.clip(arr, 0, 1) * 255).astype(np.uint8), mode="RGB")
     buf = BytesIO()
     final_img.save(buf, format="PNG")
     buf.seek(0)
 
-    st.image(final_img, use_column_width=True)
+    st.image(buf, use_column_width=True)
     st.download_button(
-        "💾 Download PNG (True CSV Color — No Post FX)",
+        "💾 Download PNG",
         data=buf,
-        file_name="crystal_mix_truecolor.png",
+        file_name="crystal_mix.png",
         mime="image/png"
     )
+
 
     # IMPORTANT: stop execution → skip all post-processing
     st.stop()
