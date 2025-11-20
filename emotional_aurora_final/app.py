@@ -22,19 +22,38 @@ st.title("❄️ Emotional Crystal — Final (CSV Edition)")
 # Instructions
 with st.expander("📘 Instructions", expanded=False):
     st.markdown("""
-### How to Use This Project (CSV Enabled)
+### 📘 How to Use
 
-**This project generates cinematic crystal visuals with emotion colors.**
+This app creates **crystal-style visuals** using:
 
-You can:
-- Fetch news via **NewsAPI**
-- Generate **random crystal patterns**
-- Load your **own color palette from CSV**
-- Export your custom palette as CSV
-- Enable **CSV-only color mode**: *100% use CSV colors, no fallback*
+#### 1. 📰 NewsAPI (emotion from news)
+- Enter your NewsAPI key in Secrets
+- Input a keyword
+- News → Sentiment → Emotion → Crystal colors
 
-✔ If CSV-only is ON → No emotion will ever use default colors.  
-✔ Random mode will also use CSV palette.
+#### 2. 🎲 Random Crystal Mode
+Generates random emotion labels + random colors for abstract visuals.
+
+#### 3. 🎨 CSV Color Palette
+- Import your own palette (emotion, r, g, b)
+- Enable **CSV-only mode** → all colors come ONLY from your CSV  
+  (no default colors, no fallback)
+
+You can also manually add colors and export your palette.
+
+#### 4. ❄️ Crystal Controls
+Layers • crystal count • blur • size • wobble • seed • background color
+
+#### 5. 🎞 Cinematic Color
+Exposure • contrast • saturation • gamma • white balance  
+split tone • bloom • vignette • auto brightness
+
+#### 6. 💾 Export
+Download final crystal image (PNG)  
+Download current palette (CSV)
+
+Enjoy exploring emotion × color × cinematic visuals.
+
 
 ---
 """)
