@@ -287,38 +287,51 @@ def render_crystalmix(
     for _layer in range(total_layers):        # ← loop more layers
         for emo in emotions:
 
-            base_rgb = palette.get(emo, palette.get("mixed", (230,190,110)))
-            base01 = vibrancy_boost(base_rgb, sat_boost=1.30, min_luma=0.40)
+            # ★ CSV-only mode → 禁止 fallback，必须使用 CSV color
+# ★ 1) 在 CSV-only 模式中严格使用 CSV 颜色，不允许 fallback
+if st.session_state.get("use_csv_palette", False):
+    base_rgb = palette[emo]     # 精确 CSV 颜色
+else:
+    base_rgb = palette.get(emo, palette.get("mixed", (230,190,110)))
 
-            for _ in range(max(1, int(shapes_per_emotion))):
-                cx = rng.uniform(0.05*width, 0.95*width)
-                cy = rng.uniform(0.08*height, 0.92*height)
 
-                rr = int(rng.uniform(min_size, max_size))
+# ★ 2) 增强亮度（保留 vibrancy，但可以根据你需要关闭）
+base01 = vibrancy_boost(base_rgb, sat_boost=1.30, min_luma=0.40)
 
-                pts = crystal_shape(
-                    center=(cx,cy),
-                    r=rr,
-                    wobble=wobble,          # ← NEW wobble strength
-                    sides_min=5,
-                    sides_max=10,
-                    rng=rng
-                )
 
-                col01 = jitter_color(base01, rng, amount=0.07)
-                local_alpha = int(np.clip(fill_alpha * rng.uniform(0.85, 1.05), 40, 255))
-                local_blur = max(0, int(blur_px * rng.uniform(0.7, 1.4)))
-                edge_w = 0 if rng.random() < 0.6 else max(1, int(rr*0.02))
+# ★ 3) 生成 crystal shapes
+for _ in range(max(1, int(shapes_per_emotion))):
 
-                draw_polygon_soft(
-                    canvas, pts, col01,
-                    fill_alpha=local_alpha,
-                    blur_px=local_blur,
-                    edge_width=edge_w
-                )
+    cx = rng.uniform(0.05*width, 0.95*width)
+    cy = rng.uniform(0.08*height, 0.92*height)
+    rr = int(rng.uniform(min_size, max_size))
 
-    base.alpha_composite(canvas)
-    return base.convert("RGB")
+    pts = crystal_shape(
+        center=(cx, cy),
+        r=rr,
+        wobble=wobble,
+        sides_min=5,
+        sides_max=10,
+        rng=rng
+    )
+
+    # ★ 4) CSV-only 模式：禁止 jitter，保持颜色 100% 准确
+    if st.session_state.get("use_csv_palette", False):
+        col01 = base01
+    else:
+        col01 = jitter_color(base01, rng, amount=0.07)
+
+    # 透明度 / 模糊
+    local_alpha = int(np.clip(fill_alpha * rng.uniform(0.85, 1.05), 40, 255))
+    local_blur = max(0, int(blur_px * rng.uniform(0.7, 1.4)))
+    edge_w = 0 if rng.random() < 0.6 else max(1, int(rr * 0.02))
+
+    draw_polygon_soft(
+        canvas, pts, col01,
+        fill_alpha=local_alpha,
+        blur_px=local_blur,
+        edge_width=edge_w
+    )
 
 
 # =========================
@@ -1006,28 +1019,15 @@ with left:
 
    
     working_palette = get_active_palette()
-# ==========================================
-# CSV-ONLY MODE: force df to use custom palette keys
-# ==========================================
+# ================================
+# FORCE CSV-only palette
+# ================================
 if st.session_state.get("use_csv_palette", False):
-  # ==========================================================
-# CSV-ONLY MODE — FULL FIX
-# ==========================================================
-if st.session_state.get("use_csv_palette", False):
-
-    pal = list(working_palette.keys())
-
-    if len(pal) == 0:
-        st.warning("CSV palette only mode enabled, but no custom colors found.")
-    else:
-        # ❶ 跳过 emotion filtering
-        df = df.copy().reset_index(drop=True)
-
-        # ❷ 每条记录循环分配 palette 颜色（真正均匀）
-        df["emotion"] = [pal[i % len(pal)] for i in range(len(df))]
-
-        # ❸ 不做 emotion 过滤，不做 top3，不做 multiselect
-        selected_emotions = pal[:]   # 全部使用 palette 颜色
+    # ★ 完全使用 CSV palette，不允许 DEFAULT fallback
+    working_palette = dict(st.session_state.get("custom_palette", {}))
+else:
+    # ★ 正常模式才允许 default + custom
+    working_palette = get_active_palette()
 
 
     # ❄️ Crystal Mix Render
