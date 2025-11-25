@@ -10,10 +10,10 @@ from PIL import Image, ImageFilter, ImageDraw, ImageFont
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 import requests
-from datetime import date
-import 
+from datetime import date, datetime, timezone, timedelta
+import math
 import plotly.express as px
-from datetime import datetime, timezone, timedelta
+
 
 # =========================
 # App setup
