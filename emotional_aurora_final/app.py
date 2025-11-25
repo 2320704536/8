@@ -19,7 +19,7 @@ import plotly.express as px
 # App setup
 # =========================
 st.set_page_config(page_title="Emotional Crystal — Final CSV", page_icon="❄️", layout="wide")
-st.title("❄️ Emotional Crystal — Final (CSV Edition)")
+st.title("❄️ Emotional Crystal")
 
 # Instructions
 with st.expander("📘 Instructions", expanded=False):
